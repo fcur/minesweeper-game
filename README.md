@@ -1,2 +1,5 @@
 # minesweeper-game
-just for fun
+
+Example
+
+![Screenshot1](Attachments/Screenshot1.jpg)
