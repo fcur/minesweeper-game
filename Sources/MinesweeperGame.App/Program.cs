@@ -1,5 +1,5 @@
 ﻿using MinesweeperGame.App.Entities;
-using MinesweeperGame.App.Extension;
+using MinesweeperGame.App.Extensions;
 
 Console.WriteLine("Minesweeper console game.\nPress enter to start new game");
 Console.ReadLine();

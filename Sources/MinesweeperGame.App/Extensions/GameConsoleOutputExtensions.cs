@@ -1,7 +1,7 @@
 ﻿using MinesweeperGame.App.Converters;
 using MinesweeperGame.App.Entities;
 
-namespace MinesweeperGame.App.Extension;
+namespace MinesweeperGame.App.Extensions;
 
 internal static class GameConsoleOutputExtensions
 {
