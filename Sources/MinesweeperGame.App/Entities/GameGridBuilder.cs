@@ -53,7 +53,6 @@ public class GameGridBuilder
     {
         for (var column = 0; column < _width; column++)
         {
-
             for (var row = 0; row < _height; row++)
             {
                 var gridCell = _grid[row, column];
@@ -95,10 +94,10 @@ public class GameGridBuilder
         var nextColumn = mineColumn + 1;
 
         var boundaryCellIndexes = new int[,] {
-        { prewRow, prewColumn }, { prewRow, mineColumn }, { prewRow, nextColumn },
-        { mineRow, prewColumn }, { mineRow, nextColumn },
-        { nextRow, prewColumn }, { nextRow, mineColumn }, { nextRow, nextColumn },
-    };
+            { prewRow, prewColumn }, { prewRow, mineColumn }, { prewRow, nextColumn },
+            { mineRow, prewColumn }, { mineRow, nextColumn },
+            { nextRow, prewColumn }, { nextRow, mineColumn }, { nextRow, nextColumn },
+        };
 
         return boundaryCellIndexes;
     }

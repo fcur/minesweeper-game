@@ -1,4 +1,5 @@
-﻿using MinesweeperGame.App.Converters;
+﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MinesweeperGame.App.Entities;
 
@@ -19,7 +20,7 @@ public sealed class Game
         _gridVisibility = gridVisibility;
         _minesCounter = minesCount;
         _marksCounter = minesCount;
-        _state = GameState.Active;
+        _state = GameState.FirstStep;
     }
 
     public static Game Create(int level)
@@ -35,10 +36,8 @@ public sealed class Game
 
     public bool IsValidCoordinates(int row, int column)
     {
-        var height = _gridData.GetLength(0);
-        var witdh = _gridData.GetLength(1);
-
-        return InRange(row, -1, height) && InRange(column, -1, witdh);
+        (int height, int width) = GridSize;
+        return InRange(row, -1, height) && InRange(column, -1, width);
     }
 
     public bool MoveNext(char operation, int row, int column)
@@ -49,61 +48,23 @@ public sealed class Game
             return false;
         }
 
-        switch (_state)
+        return _state switch
         {
-            case GameState.Loss:
-                Print("You lost! Dont worry.");
-                return false;
-            case GameState.Active when operation == GameCellOperations.Mark:
-                return TryMarkMine(row, column);
-            case GameState.Active when operation == GameCellOperations.Open:
-                return TryOpenCell(row, column);
-            case GameState.Win:
-                Print("Congratulations! You won.");
-                return false;
-            default:
-                SetLoss();
-                return false;
-        }
+            GameState.Loss or GameState.Win => false,
+            GameState.FirstStep => OpenBoundaryCells(row, column),
+            GameState.Active when operation == GameCellOperations.Mark => TryToggleCell(row, column),
+            GameState.Active when operation == GameCellOperations.Open => TryOpenCell(row, column),
+            _ => throw new ArgumentOutOfRangeException(nameof(_state), "Invalid game state")
+        };
     }
 
-    public void PrintResults(string title)
-    {
-        Console.WriteLine(title);
+    public (int[,] GridData, bool[,] GridVisibility) Data => new(_gridData, _gridVisibility);
 
-        switch (_state)
-        {
-            case GameState.Loss:
-                Print("You lost! Dont worry.", true);
-                break;
-            case GameState.Win:
-                Print("Congratulations! You won.", true);
-                break;
-            default:
-                break;
-        }
-    }
+    public (int Heigh, int Width) GridSize => new(_gridData.GetLength(0), _gridData.GetLength(1));
 
-    public void Print(string title, bool? visibility = null)
-    {
-        Console.WriteLine($"{title}\nMarks: {_marksCounter}");
+    public int MarksCounter => _marksCounter;
 
-        var height = _gridData.GetLength(0);
-        var witdh = _gridData.GetLength(1);
-
-        Console.BackgroundColor = ConsoleColor.Black;
-        for (var row = 0; row < height; row++)
-        {
-            for (var column = 0; column < witdh; column++)
-            {
-                var gridCell = _gridData[row, column];
-                var cellVisibility = visibility ?? _gridVisibility[row, column];
-                PrintCellValue(gridCell, cellVisibility);
-            }
-            Console.WriteLine();
-        }
-        Console.ResetColor();
-    }
+    public int State => _state;
 
     private bool AllMinesAreMarked => _minesCounter == 0;
 
@@ -119,7 +80,12 @@ public sealed class Game
         _state = GameState.Win;
     }
 
-    private bool TryMarkMine(int row, int column)
+    private void SetActive()
+    {
+        _state = GameState.Active;
+    }
+
+    private bool TryToggleCell(int row, int column)
     {
         if (CellIsMarked(_gridData[row, column]))
         {
@@ -143,6 +109,45 @@ public sealed class Game
         }
 
         _gridVisibility[row, column] = true;
+        return true;
+    }
+
+    private bool OpenBoundaryCells(int row, int column)
+    {
+        if (CellIsMine(_gridData[row, column]))
+        {
+            SetLoss();
+            return false;
+        }
+
+        var counter = _minesCounter;
+        var deep = 1;
+        (int height, int width) = GridSize;
+
+        do
+        {
+            for (var x = Math.Max(0, column - deep); x < Math.Min(column + deep, width); x++)
+            {
+                for (var y = Math.Max(0, row - deep); y < Math.Min(row + deep, height); y++)
+                {
+                    var visible = _gridVisibility[x, y];
+                    var data = _gridData[x, y];
+
+                    if (visible || CellIsMine(data) || counter < 1)
+                    {
+                        continue;
+                    }
+
+                    _gridVisibility[x, y] = true;
+                    counter--;
+                }
+            }
+
+            deep++;
+
+        } while (counter > 0);
+
+        SetActive();
         return true;
     }
 
@@ -181,15 +186,6 @@ public sealed class Game
         _marksCounter++;
 
         return true;
-    }
-
-    private static void PrintCellValue(int cellValue, bool visible)
-    {
-        var cellColor = cellValue.ToColor(visible);
-        var cellContent = cellValue.ToContent(visible);
-
-        Console.ForegroundColor = cellColor;
-        Console.Write($"{cellContent} ");
     }
 
     private static (int rows, int columns) GetGridSize(int level) => level switch

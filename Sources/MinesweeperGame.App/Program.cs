@@ -1,4 +1,5 @@
 ﻿using MinesweeperGame.App.Entities;
+using MinesweeperGame.App.Extension;
 
 Console.WriteLine("Minesweeper console game.\nPress enter to start new game");
 Console.ReadLine();
@@ -13,7 +14,7 @@ do
         case '1': level = GameLevel.Begginer; break;
         case '2': level = GameLevel.Normal; break;
         case '3': level = GameLevel.Expert; break;
-        default: Console.WriteLine(" is wrong input, try again"); continue;
+        default: Console.WriteLine(" is wrong input, try again"); break;
     }
 } while (level == default);
 
@@ -24,7 +25,7 @@ do
 {
     Console.Clear();
     game.Print("There is your game board.");
-    Console.WriteLine("Select action (open/mark), enter coordinates (numbers) and press 'enter'.\n(For example, input 'o 1 2' means to open the cell at the second row and third column)");
+    Console.WriteLine("Seelct action (open/mark), enter coordinates (numbers) and press 'enter'.\n(For example, input 'o 1 2' means open cell at the second row and third column)");
     var inputLine = Console.ReadLine()?.ToUpper();
     if (string.IsNullOrWhiteSpace(inputLine))
     {
