@@ -17,7 +17,7 @@ public sealed class Game
         _gridVisibility = gridVisibility;
         _minesCounter = minesCount;
         _marksCounter = minesCount;
-        _state = GameState.FirstStep;
+        _state = GameState.Initial;
     }
 
     public static Game Create(int level)
@@ -48,7 +48,7 @@ public sealed class Game
         return _state switch
         {
             GameState.Loss or GameState.Win => false,
-            GameState.FirstStep => OpenBoundaryCells(row, column),
+            GameState.Initial => OpenBoundaryCells(row, column),
             GameState.Active when operation == GameCellOperations.Mark => TryToggleCell(row, column),
             GameState.Active when operation == GameCellOperations.Open => TryOpenCell(row, column),
             _ => throw new ArgumentOutOfRangeException(nameof(_state), "Invalid game state")
@@ -82,9 +82,22 @@ public sealed class Game
         _state = GameState.Active;
     }
 
+    private bool CellIsVisible(int row, int column) => _gridVisibility[row, column];
+
+    private bool CellIsMarked(int row, int column) => _gridData[row, column] >= GameCellValue.MarkMineShift;
+
+    private bool CellIsMine(int row, int column) => _gridData[row, column] is GameCellValue.Mine or GameMarkedCellValue.Mine;
+
+    private void ShowCell(int row, int column) => _gridVisibility[row, column] = true;
+
     private bool TryToggleCell(int row, int column)
     {
-        if (CellIsMarked(_gridData[row, column]))
+        if (CellIsVisible(row, column))
+        {
+            return true;
+        }
+
+        if (CellIsMarked(row, column))
         {
             return UnmarkCell(row, column);
         }
@@ -94,24 +107,24 @@ public sealed class Game
 
     private bool TryOpenCell(int row, int column)
     {
-        if (CellIsMarked(_gridData[row, column]))
+        if (CellIsMarked(row, column))
         {
             UnmarkCell(row, column);
         }
 
-        if (CellIsMine(_gridData[row, column]))
+        if (CellIsMine(row, column))
         {
             SetLoss();
             return false;
         }
 
-        _gridVisibility[row, column] = true;
+        ShowCell(row, column);
         return true;
     }
 
     private bool OpenBoundaryCells(int row, int column)
     {
-        if (CellIsMine(_gridData[row, column]))
+        if (CellIsMine(row, column))
         {
             SetLoss();
             return false;
@@ -123,19 +136,19 @@ public sealed class Game
 
         do
         {
-            for (var x = Math.Max(0, column - deep); x < Math.Min(column + deep, width); x++)
+            for (var boundRow = Math.Max(0, row - deep); boundRow < Math.Min(row + deep, height); boundRow++)
             {
-                for (var y = Math.Max(0, row - deep); y < Math.Min(row + deep, height); y++)
+                for (var boundColumn = Math.Max(0, column - deep); boundColumn < Math.Min(column + deep, width); boundColumn++)
                 {
-                    var visible = _gridVisibility[x, y];
-                    var data = _gridData[x, y];
+                    var isVisible = CellIsVisible(boundRow, boundColumn);
+                    var isMine = CellIsMine(boundRow, boundColumn);
 
-                    if (visible || CellIsMine(data) || counter < 1)
+                    if (isVisible || isMine || counter < 1)
                     {
                         continue;
                     }
 
-                    _gridVisibility[x, y] = true;
+                    ShowCell(boundRow, boundColumn);
                     counter--;
                 }
             }
@@ -150,7 +163,7 @@ public sealed class Game
 
     private bool MarkCell(int row, int column)
     {
-        if (CellIsMine(_gridData[row, column]))
+        if (CellIsMine(row, column))
         {
             _minesCounter--;
         }
@@ -166,23 +179,33 @@ public sealed class Game
             return true;
         }
 
-        _gridData[row, column] += GameCellValue.MarkMineShift;
-        _marksCounter--;
+        MarkCellImpl(row, column);
 
         return true;
     }
 
     private bool UnmarkCell(int row, int column)
     {
-        if (CellIsMarkedMine(_gridData[row, column]))
+        if (CellIsMine(row, column))
         {
             _minesCounter++;
         }
 
-        _gridData[row, column] -= GameCellValue.MarkMineShift;
-        _marksCounter++;
+        UnmarkCellImpl(row, column);
 
         return true;
+    }
+
+    private void MarkCellImpl(int row, int column)
+    {
+        _gridData[row, column] += GameCellValue.MarkMineShift;
+        _marksCounter--;
+    }
+
+    private void UnmarkCellImpl(int row, int column)
+    {
+        _gridData[row, column] -= GameCellValue.MarkMineShift;
+        _marksCounter++;
     }
 
     private static (int rows, int columns) GetGridSize(int level) => level switch
@@ -209,10 +232,4 @@ public sealed class Game
     }
 
     private static bool InRange(int value, int min, int max) => value > min && value < max;
-
-    private static bool CellIsMarked(int cellValue) => cellValue >= GameCellValue.MarkMineShift;
-
-    private static bool CellIsMine(int cellValue) => cellValue == GameCellValue.Mine;
-
-    private static bool CellIsMarkedMine(int cellValue) => cellValue == GameMarkedCellValue.Mine;
 }

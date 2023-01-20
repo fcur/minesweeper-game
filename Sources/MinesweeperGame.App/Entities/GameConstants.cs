@@ -69,7 +69,7 @@ public static class GameMarkedCellValue
 public static class GameState
 {
     public const int Loss = -1;
-    public const int FirstStep = 0;
+    public const int Initial = 0;
     public const int Active = 1;
     public const int Win = 2;
 }

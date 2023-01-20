@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MinesweeperGame.App": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
