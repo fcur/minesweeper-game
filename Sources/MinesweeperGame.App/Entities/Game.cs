@@ -1,6 +1,4 @@
-﻿using System.Transactions;
-
-namespace MinesweeperGame.App.Entities;
+﻿namespace MinesweeperGame.App.Entities;
 
 public sealed class Game
 {
@@ -157,7 +155,6 @@ public sealed class Game
         }
 
         _minesCounter--;
-
 
         if (AllMinesMarked)
         {

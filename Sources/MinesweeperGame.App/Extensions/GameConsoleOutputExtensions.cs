@@ -17,7 +17,6 @@ internal static class GameConsoleOutputExtensions
         {
             for (var column = 0; column < width; column++)
             {
-
                 (string cellContent, ConsoleColor cellColor) = cellsState[row, column].ToColoredValue(visibilityOverride);
 
                 Console.ForegroundColor = cellColor;

@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using FluentAssertions.Execution;
-using MinesweeperGame.App.Entities;
-
-namespace MinesweeperGame.Tests;
+﻿namespace MinesweeperGame.Tests;
 
 public class CellTests
 {

@@ -1,7 +1,3 @@
-using MinesweeperGame.App.Entities;
-using FluentAssertions.Execution;
-using FluentAssertions;
-
 namespace MinesweeperGame.Tests;
 
 public class GameTests

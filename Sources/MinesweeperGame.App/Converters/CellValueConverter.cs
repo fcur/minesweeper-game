@@ -1,4 +1,4 @@
-﻿using MinesweeperGame.App.Entities;
+﻿global using MinesweeperGame.App.Entities;
 
 namespace MinesweeperGame.App.Converters;
 
