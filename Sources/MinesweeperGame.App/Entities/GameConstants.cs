@@ -49,21 +49,6 @@ public static class GameCellValue
     public const int C7 = 7;
     public const int C8 = 8;
     public const int Mine = 9;
-    public const int MarkMineShift = 10;
-}
-
-public static class GameMarkedCellValue
-{
-    public const int None = 10;
-    public const int C1 = 11;
-    public const int C2 = 12;
-    public const int C3 = 13;
-    public const int C4 = 14;
-    public const int C5 = 15;
-    public const int C6 = 16;
-    public const int C7 = 17;
-    public const int C8 = 18;
-    public const int Mine = 19;
 }
 
 public static class GameState
@@ -72,4 +57,26 @@ public static class GameState
     public const int Initial = 0;
     public const int Active = 1;
     public const int Win = 2;
+}
+
+public static class MineValue
+{
+    public const int Simple = 9;
+    public const int Marked = 19;
+    public const int Visible = 109;
+    public const int VisibleMarked = 119;
+}
+
+public static class NoneValue
+{
+    public const int Simple = 0;
+    public const int Marked = 10;
+    public const int VisibleSimple = 100;
+    public const int VisibleMarked = 110;
+}
+
+public static class ValueShift
+{
+    public const int Mark = 10;
+    public const int Open = 100;
 }

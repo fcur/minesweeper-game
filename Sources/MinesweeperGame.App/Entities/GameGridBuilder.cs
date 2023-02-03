@@ -2,15 +2,40 @@
 
 public class GameGridBuilder
 {
-    private readonly int[,] _grid;
+    private readonly Cell[,] _cells;
     private readonly int _width;
     private readonly int _height;
 
     private GameGridBuilder(int rows, int columns)
     {
-        _grid = new int[rows, columns];
+        _cells = new Cell[rows, columns];
         _height = rows;
         _width = columns;
+    }
+
+    public GameGridBuilder WithMines(int minesCount)
+    {
+        var random = new Random();
+        do
+        {
+            var rowIndex = random.Next(_height - 1);
+            var columnIndex = random.Next(_width - 1);
+
+            if(TryGetState(rowIndex, columnIndex, out var state) && !state.IsMine)
+            {
+                ApplyMine(rowIndex, columnIndex);
+
+                minesCount--;
+            }
+
+        } while (minesCount > 0);
+
+        return this;
+    }
+
+    public Cell[,] GetCells()
+    {
+        return _cells;
     }
 
     public static GameGridBuilder Create(int rows, int columns)
@@ -18,57 +43,10 @@ public class GameGridBuilder
         return new(rows, columns);
     }
 
-    public GameGridBuilder WithMines(int minesCount)
-    {
-        AddMines(minesCount);
-        UseMines();
-
-        return this;
-    }
-
-    public int[,] GetGrid()
-    {
-        return _grid;
-    }
-
-    private void AddMines(int minesCount)
-    {
-        var random = new Random();
-
-        do
-        {
-            var columnIndex = random.Next(_width - 1);
-            var rowIndex = random.Next(_height - 1);
-
-            if (_grid[rowIndex, columnIndex] != GameCellValue.Mine)
-            {
-                _grid[rowIndex, columnIndex] = GameCellValue.Mine;
-                minesCount--;
-            }
-
-        } while (minesCount > 0);
-    }
-
-    private void UseMines()
-    {
-        for (var column = 0; column < _width; column++)
-        {
-            for (var row = 0; row < _height; row++)
-            {
-                var gridCell = _grid[row, column];
-
-                if (gridCell != GameCellValue.Mine)
-                {
-                    continue;
-                }
-
-                ApplyMine(row, column);
-            }
-        }
-    }
-
     private void ApplyMine(int mineRow, int mineColumn)
     {
+        _cells[mineRow, mineColumn] = Cell.NewMine;
+
         var boundaryCellIndexes = PrepareMineBoundary(mineRow, mineColumn);
 
         for (var i = 0; i < boundaryCellIndexes.GetLength(0); i++)
@@ -76,14 +54,25 @@ public class GameGridBuilder
             var cellRow = boundaryCellIndexes[i, 0];
             var cellColumn = boundaryCellIndexes[i, 1];
 
-            if (cellRow < 0 || cellRow >= _height
-                || cellColumn < 0 || cellColumn >= _width
-                || _grid[cellRow, cellColumn] == GameCellValue.Mine)
+            if(!TryGetState(cellRow, cellColumn, out var cellState) || cellState.IsMine)
             {
                 continue;
             }
-            _grid[cellRow, cellColumn]++;
+
+            _cells[cellRow, cellColumn]++;
         }
+    }
+
+    private bool TryGetState(int cellRow, int cellColumn, out CellState cellState)
+    {
+        if (cellRow < 0 || cellRow >= _height || cellColumn < 0 || cellColumn >= _width)
+        {
+            cellState = CellState.None;
+            return false;
+        }
+
+        cellState = _cells[cellRow, cellColumn].GetState();
+        return true;
     }
 
     private static int[,] PrepareMineBoundary(int mineRow, int mineColumn)
